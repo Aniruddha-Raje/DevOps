@@ -1,0 +1,176 @@
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install default-jdk -y
+sudo apt-get install apache2
+sudo apt-get install curl
+sudo apt-get install unzip
+sudo apt-get install git
+sudo apt-get install wget
+sudo apt-get install awscli -y
+sudo apt-get install mysql-server -y
+sudo apt-get install python-pip -y
+sudo apt-get install php libapache2-mod-php php-mcrypt php-mysql -y
+
+sudo apt-get install nginx
+sudo apt-get install nodejs
+sudo apt-get install npm
+npm install express
+npm install ejs
+
+npm install -g npm@4
+
+sudo npm install mysql
+sudo npm install express-myconnection
+sudo npm install -g yo 
+sudo npm install -g bower
+sudo npm install -g @angular/cli
+sudo npm install -g mongoose
+sudo npm install -g generator-angular
+
+sudo service NetworkManager restart
+sudo service elasticsearch restart
+sudo service kibana restart
+
+sudo service apache2 restart|stop|start
+systemctl status apache2
+systemctl status nginx
+
+tar -zcvf tar-archive-name.tar.gz source-folder-name
+tar -xvzf fileToUnzip
+
+nohup java -jar -Dspring.profiles.active=endName jarName.jar &
+nohup your_command >> filename.out &
+
+mvn clean install -Dmaven.test.skip=true
+
+//To open port 3000
+sudo ufw allow 3000
+====================================
+sudo timedatectl set-timezone Australia/Perth
+
+export TZ="/usr/share/zoneinfo/Australia/Perth"
+
+unlink /etc/localtime
+
+ln -s /usr/share/zoneinfo/Australia/Perth /etc/localtime
+
+nano /etc/sysconfig/clock
+ZONE="Australia/Perth"
+UTC=true
+
+====================================
+
+[Removed a untracked file] git clean -f
+
+[Tracked to Untracked] git rm --cached filename
+
+git checkout a.txt
+
+sudo apt-get remove --auto-remove git
+sudo apt-get remove --auto-remove git
+sudo apt-get purge git
+sudo apt-get purge --auto-remove git
+sudo apt-get remove git
+====================================
+
+To add SSH keys in GitHub
+1. ssh-keygen -t rsa -C "aniruddha.raje"
+2. cat ~/.ssh/id_rsa.pub
+
+====================================
+
+apm-server -e
+
+java -javaagent:/home/user/Downloads/demo/src/main/resources/elastic-apm-agent-0.6.0.jar \
+     -Delastic.apm.server_url=http://localhost:8200 \
+     -Delastic.apm.service_name=demo \
+     -Delastic.apm.application_packages=hello \
+     -jar /home/user/Downloads/demo/src/main/resources/demo-0.1.0.jar
+
+====================================
+
+clean install -Dmaven.test.skip=true 
+
+===================================
+ngnix port config - /etc/nginx/sites-available/default
+apache port config- /etc/apache2/ports.conf
+===================================
+
+Create sudo user Ubuntu
+1. adduser aniruddha
+2. usermod -aG sudo aniruddha
+3. su - aniruddha
+
+===================================
+
+/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+sudo nano /etc/environment
+reload the system PATH with the following command:
+. /etc/environment
+
+===================================
+
+Enable password authentication by editing /etc/ssh/sshd_config: 
+change PasswordAuthentication no to PasswordAuthentication yes
+sudo /etc/init.d/ssh restart
+
+
+cd /etc/
+cat hosts
+cat hostname
+
+
+sudo nano NetworkManager/NetworkManager.conf
+
+[main]
+plugins=ifupdown,keyfile,ofono
+#dns=dnsmasq
+
+[ifupdown]
+managed=false
+
+
+===============
+
+1. sudo su
+2. sudo apt-get update
+3. sudo apt-get upgrade
+
+npm install -g bower
+npm install -g grunt-cli
+sudo kill $(sudo lsof -t -i:9001)
+
+============
+
+crontab -e 
+
+0 0 * * * /home/ubuntu/cacheRemoval.sh
+
+
+//cacheRemoval.sh
+
+#!/bin/bash 
+sync; echo 1 > /proc/sys/vm/drop_caches
+
+=====================
+Maven -
+
+1. Download tar/zip from -
+https://maven.apache.org/download.cgi
+
+2.Extract into /opt/ folder
+
+3. Set environment variables -
+export M2_HOME=/opt/maven
+export M2=$M2_HOME/bin
+export PATH=$M2:$PATH
+
+=================
+
+cat /var/lib/jenkins/secrets/initialAdminPassword
+
+bash sonar.sh start
+
+mvn sonar:sonar \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.login=29d0cf7c8917e7794b7208cf59505f586b232323

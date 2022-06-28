@@ -1,0 +1,569 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CFN to build network components of the environment.
+Parameters:
+  AppName:
+    Default: Test
+    Description: Short & Single Word name of Client. To be used for tagging resources.
+    Type: String
+  EnvironmentName:
+    Default: Dev
+    Description: 'Either Prod, Staging, Dev'
+    Type: String
+  VPCCidrBlock:
+    Default: 20.50.0.0/16
+    Description: CIDR block of VPC being created
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  PublicSubnetCidrBlockA:
+    Default: '20.50.0.0/20 '
+    Description: CIDR block of Public Subnet in AZ A
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  PublicSubnetCidrBlockB:
+    Default: 20.50.16.0/20
+    Description: CIDR block of Public Subnet in AZ B
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  PublicSubnetCidrBlockC:
+    Default: 20.50.32.0/20
+    Description: CIDR block of Public Subnet in AZ C
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  AppSubnetCidrBlockA:
+    Default: 20.50.48.0/20
+    Description: CIDR block of App Subnet in AZ A
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  AppSubnetCidrBlockB:
+    Default: 20.50.64.0/20
+    Description: CIDR block of App Subnet in AZ B
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  AppSubnetCidrBlockC:
+    Default: 20.50.80.0/20
+    Description: CIDR block of App Subnet in AZ C
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  DbSubnetCidrBlockA:
+    Default: 20.50.96.0/20
+    Description: CIDR block of Db Subnet in AZ A
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  DbSubnetCidrBlockB:
+    Default: 20.50.112.0/20
+    Description: CIDR block of Db Subnet in AZ B
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+  DbSubnetCidrBlockC:
+    Default: 20.50.128.0/20
+    Description: CIDR block of Db Subnet in AZ C
+    Type: String
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid private CIDR range.
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Environment Configuration
+        Parameters:
+          - AppName
+          - EnvironmentName
+          - VPCCidrBlock
+      - Label:
+          default: Public Layer Configuration
+        Parameters:
+          - PublicSubnetCidrBlockA
+          - PublicSubnetCidrBlockB
+          - PublicSubnetCidrBlockC
+      - Label:
+          default: App Layer Configuration
+        Parameters:
+          - AppSubnetCidrBlockA
+          - AppSubnetCidrBlockB
+          - AppSubnetCidrBlockC
+      - Label:
+          default: DB Layer Configuration
+        Parameters:
+          - DbSubnetCidrBlockA
+          - DbSubnetCidrBlockB
+          - DbSubnetCidrBlockC
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'false'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - VPC
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  PublicSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - a
+      CidrBlock: !Ref PublicSubnetCidrBlockA
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - PublicSubnet-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  PublicSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - b
+      CidrBlock: !Ref PublicSubnetCidrBlockB
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - PublicSubnet-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  PublicSubnetC:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - c
+      CidrBlock: !Ref PublicSubnetCidrBlockC
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - PublicSubnet-c
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  AppSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - a
+      CidrBlock: !Ref AppSubnetCidrBlockA
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - AppSubnet-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  AppSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - b
+      CidrBlock: !Ref AppSubnetCidrBlockB
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - AppSubnet-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  AppSubnetC:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - c
+      CidrBlock: !Ref AppSubnetCidrBlockC
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - AppSubnet-c
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  DBSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - a
+      CidrBlock: !Ref DbSubnetCidrBlockA
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - DBSubnet-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  DBSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - b
+      CidrBlock: !Ref DbSubnetCidrBlockB
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - DBSubnet-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  DBSubnetC:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Join 
+        - ''
+        - - !Ref 'AWS::Region'
+          - c
+      CidrBlock: !Ref DbSubnetCidrBlockC
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - DBSubnet-c
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+      VpcId: !Ref VPC
+  IGW:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - IGW
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  VPCIGWAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref IGW
+      VpcId: !Ref VPC
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - Public-RT
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  PublicRTEntry:
+    Type: 'AWS::EC2::Route'
+    DependsOn:
+      - IGW
+      - PublicRouteTable
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+      RouteTableId: !Ref PublicRouteTable
+  PublicRTSubnetAssociationA:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetA
+  PublicRTSubnetAssociationB:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetB
+  PublicRTSubnetAssociationC:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetC
+  BastionSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: SG for Bastion Server
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - Bastion-SG
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  AppSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: SG for App Servers
+      SecurityGroupIngress:
+        - IpProtocol: '-1'
+          FromPort: '0'
+          ToPort: '65535'
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - APP-SG
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  DbSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: THM-Prod-DB-SG
+      GroupDescription: SG for Database Servers
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          SourceSecurityGroupId: !Ref AppSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - DB-SG
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  EIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: !Ref VPC
+  NATGW:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt 
+        - EIP
+        - AllocationId
+      SubnetId: !Ref PublicSubnetA
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - NAT
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref AppName
+              - !Ref EnvironmentName
+              - Private-RT
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: CreatedBy
+          Value: BlazeClan
+  PrivateRTEntry:
+    Type: 'AWS::EC2::Route'
+    DependsOn:
+      - NATGW
+      - PrivateRouteTable
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGW
+      RouteTableId: !Ref PrivateRouteTable
+  PrivateRTSubnetAssociationAppA:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref AppSubnetA
+  PrivateRTSubnetAssociationAppB:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref AppSubnetB
+  PrivateRTSubnetAssociationAppC:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref AppSubnetC
+  PrivateRTSubnetAssociationDBA:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref DBSubnetA
+  PrivateRTSubnetAssociationDBB:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref DBSubnetB
+  PrivateRTSubnetAssociationDBC:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref DBSubnetC
+Outputs:
+  VPCIDOP:
+    Description: VPC ID being created
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC'
+  BastionSecurityGroupOP:
+    Description: Security Group ID for Bastion Server
+    Value: !Ref BastionSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-BastionSecurityGroup'
+  AppSecurityGroupOP:
+    Description: Security Group ID for App Server
+    Value: !Ref AppSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-AppSecurityGroup'
+  DbSecurityGroupOP:
+    Description: Security Group ID for Db Server
+    Value: !Ref DbSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-DbSecurityGroup'
+  PublicSubnetAOP:
+    Description: Subnet ID of Public Subnet A
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetA'
+  PublicSubnetBOP:
+    Description: Subnet ID of Public Subnet B
+    Value: !Ref PublicSubnetB
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetB'
+  PublicSubnetCOP:
+    Description: Subnet ID of Public Subnet C
+    Value: !Ref PublicSubnetC
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetC'
+  AppSubnetAOP:
+    Description: Subnet ID of App Subnet A
+    Value: !Ref AppSubnetA
+    Export:
+      Name: !Sub '${AWS::StackName}-AppSubnetA'
+  AppSubnetBOP:
+    Description: Subnet ID of App Subnet B
+    Value: !Ref AppSubnetB
+    Export:
+      Name: !Sub '${AWS::StackName}-AppSubnetB'
+  AppSubnetCOP:
+    Description: Subnet ID of App Subnet C
+    Value: !Ref AppSubnetC
+    Export:
+      Name: !Sub '${AWS::StackName}-AppSubnetC'
+  DBSubnetAOP:
+    Description: Subnet ID of DB Subnet A
+    Value: !Ref DBSubnetA
+    Export:
+      Name: !Sub '${AWS::StackName}-DBSubnetA'
+  DBSubnetBOP:
+    Description: Subnet ID of DB Subnet B
+    Value: !Ref DBSubnetB
+    Export:
+      Name: !Sub '${AWS::StackName}-DBSubnetB'
+  DBSubnetCOP:
+    Description: Subnet ID of DB Subnet C
+    Value: !Ref DBSubnetC
+    Export:
+      Name: !Sub '${AWS::StackName}-DBSubnetC'
