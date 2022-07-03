@@ -1,214 +1,354 @@
+variable "aws_region" {
+}
+
+variable "vpc_cidr" {
+}
+
+variable "pub_subnet" {
+}
+
+variable "app_subnet" {
+}
+
+variable "db_subnet" {
+}
+
 provider "aws" {
-  region     = "us-east-1"
+  region     = var.aws_region
   access_key = ""
   secret_key = ""
 }
 
-variable "subnet_prefix" {
-  description = "cidr block for the subnet"
-
-}
-
-
-
-resource "aws_vpc" "prod-vpc" {
-  cidr_block = "10.0.0.0/16"
+resource "aws_vpc" "vpc" {
+  cidr_block = var.vpc_cidr.cidr_block
   tags = {
-    Name = "production"
+    Name = var.vpc_cidr.name
   }
 }
 
-resource "aws_subnet" "subnet-1" {
-  vpc_id            = aws_vpc.prod-vpc.id
-  cidr_block        = var.subnet_prefix[0].cidr_block
-  availability_zone = "us-east-1a"
+resource "aws_subnet" "subnet-pub-1" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.pub_subnet[0].cidr_block
+  availability_zone = "ap-southeast-1a"
 
   tags = {
-    Name = var.subnet_prefix[0].name
+    Name = var.pub_subnet[0].name
   }
 }
 
-resource "aws_subnet" "subnet-2" {
-  vpc_id            = aws_vpc.prod-vpc.id
-  cidr_block        = var.subnet_prefix[1].cidr_block
-  availability_zone = "us-east-1a"
+resource "aws_subnet" "subnet-pub-2" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.pub_subnet[1].cidr_block
+  availability_zone = "ap-southeast-1b"
 
   tags = {
-    Name = var.subnet_prefix[1].name
+    Name = var.pub_subnet[1].name
   }
 }
 
+resource "aws_subnet" "subnet-pub-3" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.pub_subnet[2].cidr_block
+  availability_zone = "ap-southeast-1c"
 
+  tags = {
+    Name = var.pub_subnet[2].name
+  }
+}
 
+resource "aws_subnet" "subnet-app-1" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.app_subnet[0].cidr_block
+  availability_zone = "ap-southeast-1a"
 
+  tags = {
+    Name = var.app_subnet[0].name
+  }
+}
 
+resource "aws_subnet" "subnet-app-2" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.app_subnet[1].cidr_block
+  availability_zone = "ap-southeast-1b"
 
+  tags = {
+    Name = var.app_subnet[1].name
+  }
+}
 
+resource "aws_subnet" "subnet-app-3" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.app_subnet[2].cidr_block
+  availability_zone = "ap-southeast-1c"
 
+  tags = {
+    Name = var.app_subnet[2].name
+  }
+}
 
+resource "aws_subnet" "subnet-db-1" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.db_subnet[0].cidr_block
+  availability_zone = "ap-southeast-1a"
 
+  tags = {
+    Name = var.db_subnet[0].name
+  }
+}
 
+resource "aws_subnet" "subnet-db-2" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.db_subnet[1].cidr_block
+  availability_zone = "ap-southeast-1b"
 
+  tags = {
+    Name = var.db_subnet[1].name
+  }
+}
 
+resource "aws_subnet" "subnet-db-3" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.db_subnet[2].cidr_block
+  availability_zone = "ap-southeast-1c"
 
+  tags = {
+    Name = var.db_subnet[2].name
+  }
+}
 
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc.id
+}
 
+resource "aws_eip" "eip-nat" {}
 
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.eip-nat.id
+  subnet_id     = aws_subnet.subnet-pub-1.id
 
+  tags = {
+    Name = "NAT"
+  }
 
-# # 1. Create vpc
+  depends_on = [aws_internet_gateway.igw]
+}
 
-# resource "aws_vpc" "prod-vpc" {
-#   cidr_block = "10.0.0.0/16"
-#   tags = {
-#     Name = "production"
-#   }
-# }
+resource "aws_route_table" "rt-pub" {
+  vpc_id = aws_vpc.vpc.id
 
-# # 2. Create Internet Gateway
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
 
-# resource "aws_internet_gateway" "gw" {
-#   vpc_id = aws_vpc.prod-vpc.id
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.igw.id
+  }
 
+  tags = {
+    Name = "RT Pub"
+  }
+}
 
-# }
-# # 3. Create Custom Route Table
+resource "aws_route_table" "rt-priv" {
+  vpc_id = aws_vpc.vpc.id
 
-# resource "aws_route_table" "prod-route-table" {
-#   vpc_id = aws_vpc.prod-vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.nat.id
+  }
 
-#   route {
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.gw.id
-#   }
+  # route {
+  #   ipv6_cidr_block = "::/0"
+  #   gateway_id      = aws_nat_gateway.nat.id
+  # }
 
-#   route {
-#     ipv6_cidr_block = "::/0"
-#     gateway_id      = aws_internet_gateway.gw.id
-#   }
+  tags = {
+    Name = "RT Priv"
+  }
+}
 
-#   tags = {
-#     Name = "Prod"
-#   }
-# }
+resource "aws_route_table_association" "rt-pub-assoc-1" {
+  subnet_id      = aws_subnet.subnet-pub-1.id
+  route_table_id = aws_route_table.rt-pub.id
+}
 
-# # 4. Create a Subnet 
+resource "aws_route_table_association" "rt-pub-assoc-2" {
+  subnet_id      = aws_subnet.subnet-pub-2.id
+  route_table_id = aws_route_table.rt-pub.id
+}
 
-# resource "aws_subnet" "subnet-1" {
-#   vpc_id            = aws_vpc.prod-vpc.id
-#   cidr_block        = "10.0.1.0/24"
-#   availability_zone = "us-east-1a"
+resource "aws_route_table_association" "rt-pub-assoc-3" {
+  subnet_id      = aws_subnet.subnet-pub-3.id
+  route_table_id = aws_route_table.rt-pub.id
+}
 
-#   tags = {
-#     Name = "prod-subnet"
-#   }
-# }
+resource "aws_route_table_association" "rt-app-assoc-1" {
+  subnet_id      = aws_subnet.subnet-app-1.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-# # 5. Associate subnet with Route Table
-# resource "aws_route_table_association" "a" {
-#   subnet_id      = aws_subnet.subnet-1.id
-#   route_table_id = aws_route_table.prod-route-table.id
-# }
-# # 6. Create Security Group to allow port 22,80,443
-# resource "aws_security_group" "allow_web" {
-#   name        = "allow_web_traffic"
-#   description = "Allow Web inbound traffic"
-#   vpc_id      = aws_vpc.prod-vpc.id
+resource "aws_route_table_association" "rt-app-assoc-2" {
+  subnet_id      = aws_subnet.subnet-app-2.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-#   ingress {
-#     description = "HTTPS"
-#     from_port   = 443
-#     to_port     = 443
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-#   ingress {
-#     description = "HTTP"
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-#   ingress {
-#     description = "SSH"
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "aws_route_table_association" "rt-app-assoc-3" {
+  subnet_id      = aws_subnet.subnet-app-3.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "aws_route_table_association" "rt-db-assoc-1" {
+  subnet_id      = aws_subnet.subnet-db-1.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-#   tags = {
-#     Name = "allow_web"
-#   }
-# }
+resource "aws_route_table_association" "rt-db-assoc-2" {
+  subnet_id      = aws_subnet.subnet-db-2.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-# # 7. Create a network interface with an ip in the subnet that was created in step 4
+resource "aws_route_table_association" "rt-db-assoc-3" {
+  subnet_id      = aws_subnet.subnet-db-3.id
+  route_table_id = aws_route_table.rt-priv.id
+}
 
-# resource "aws_network_interface" "web-server-nic" {
-#   subnet_id       = aws_subnet.subnet-1.id
-#   private_ips     = ["10.0.1.50"]
-#   security_groups = [aws_security_group.allow_web.id]
+resource "aws_security_group" "sg-lambda" {
+  name        = "Lambda SG"
+  description = "Lambda SG"
+  vpc_id      = aws_vpc.vpc.id
 
-# }
-# # 8. Assign an elastic IP to the network interface created in step 7
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-# resource "aws_eip" "one" {
-#   vpc                       = true
-#   network_interface         = aws_network_interface.web-server-nic.id
-#   associate_with_private_ip = "10.0.1.50"
-#   depends_on                = [aws_internet_gateway.gw]
-# }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-# output "server_public_ip" {
-#   value = aws_eip.one.public_ip
-# }
+  tags = {
+    Name = "Lambda SG"
+  }
+}
 
-# # 9. Create Ubuntu server and install/enable apache2
+output "aws_vpc_id" {
+  value = aws_vpc.vpc.id
+}
 
-# resource "aws_instance" "web-server-instance" {
-#   ami               = "ami-085925f297f89fce1"
-#   instance_type     = "t2.micro"
-#   availability_zone = "us-east-1a"
-#   key_name          = "main-key"
+output "aws_subnet_pub_1_id" {
+  value = aws_subnet.subnet-pub-1.id
+}
 
-#   network_interface {
-#     device_index         = 0
-#     network_interface_id = aws_network_interface.web-server-nic.id
-#   }
+output "aws_subnet_pub_2_id" {
+  value = aws_subnet.subnet-pub-2.id
+}
 
-#   user_data = <<-EOF
-#                 #!/bin/bash
-#                 sudo apt update -y
-#                 sudo apt install apache2 -y
-#                 sudo systemctl start apache2
-#                 sudo bash -c 'echo your very first web server > /var/www/html/index.html'
-#                 EOF
-#   tags = {
-#     Name = "web-server"
-#   }
-# }
+output "aws_subnet_pub_3_id" {
+  value = aws_subnet.subnet-pub-3.id
+}
 
+output "aws_subnet_app_1_id" {
+  value = aws_subnet.subnet-app-1.id
+}
 
+output "aws_subnet_app_2_id" {
+  value = aws_subnet.subnet-app-2.id
+}
 
-# output "server_private_ip" {
-#   value = aws_instance.web-server-instance.private_ip
+output "aws_subnet_app_3_id" {
+  value = aws_subnet.subnet-app-3.id
+}
 
-# }
+output "aws_subnet_db_1_id" {
+  value = aws_subnet.subnet-db-1.id
+}
 
-# output "server_id" {
-#   value = aws_instance.web-server-instance.id
-# }
+output "aws_subnet_db_2_id" {
+  value = aws_subnet.subnet-db-2.id
+}
 
+output "aws_subnet_db_3_id" {
+  value = aws_subnet.subnet-db-3.id
+}
 
-# resource "<provider>_<resource_type>" "name" {
-#     config options.....
-#     key = "value"
-#     key2 = "another value"
-# }
+output "aws_internet_gateway_id" {
+  value = aws_internet_gateway.igw.id
+}
+
+output "aws_nat_eip_id" {
+  value = aws_eip.eip-nat.id
+}
+
+output "aws_nat_gateway_id" {
+  value = aws_nat_gateway.nat.id
+}
+
+output "aws_route_table_pub_id" {
+  value = aws_route_table.rt-pub.id
+}
+
+output "aws_route_table_priv_id" {
+  value = aws_route_table.rt-priv.id
+}
+
+output "aws_route_table_association_pub_1_id" {
+  value = aws_route_table_association.rt-pub-assoc-1.id
+}
+
+output "aws_route_table_association_pub_2_id" {
+  value = aws_route_table_association.rt-pub-assoc-2.id
+}
+
+output "aws_route_table_association_pub_3_id" {
+  value = aws_route_table_association.rt-pub-assoc-3.id
+}
+
+output "aws_route_table_association_app_1_id" {
+  value = aws_route_table_association.rt-app-assoc-1.id
+}
+
+output "aws_route_table_association_app_2_id" {
+  value = aws_route_table_association.rt-app-assoc-2.id
+}
+
+output "aws_route_table_association_app_3_id" {
+  value = aws_route_table_association.rt-app-assoc-3.id
+}
+
+output "aws_route_table_association_db_1_id" {
+  value = aws_route_table_association.rt-db-assoc-1.id
+}
+
+output "aws_route_table_association_db_2_id" {
+  value = aws_route_table_association.rt-db-assoc-2.id
+}
+
+output "aws_route_table_association_db_3_id" {
+  value = aws_route_table_association.rt-db-assoc-3.id
+}
+
+output "aws_security_group_lambda" {
+  value = aws_security_group.sg-lambda.id
+}
